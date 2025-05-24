@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>AR Video Demo</title>
+  <title>AR Video With Sound (iOS-compatible)</title>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image-three.prod.js"></script>
@@ -16,61 +16,73 @@
     #ar-container {
       width: 100vw;
       height: 100vh;
+      position: relative;
+    }
+
+    #overlay-message {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      z-index: 999;
     }
   </style>
 </head>
 
 <body>
-  <div id="ar-container"></div>
+  <div id="ar-container">
+    <div id="overlay-message">🔊 Chạm vào màn hình để bật âm thanh</div>
+  </div>
+
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
         container: document.querySelector("#ar-container"),
-        imageTargetSrc: "marker.mind",
+        imageTargetSrc: "marker.mind", // Thay bằng file marker thật
       });
 
       const { renderer, scene, camera } = mindarThree;
       const anchor = mindarThree.addAnchor(0);
 
       const video = document.createElement("video");
-      video.src = "Vid1.mp4";
+      video.src = "Vid1.mp4"; // Đảm bảo file mp4 có định dạng chuẩn H.264
       video.crossOrigin = "anonymous";
       video.loop = true;
-      video.muted = true;
+      video.muted = false; // Cho âm thanh
       video.playsInline = true;
-      video.autoplay = true;
+      video.autoplay = false; // Không autoplay — chờ người chạm
 
       const texture = new THREE.VideoTexture(video);
-      const geometry = new THREE.PlaneGeometry(1, 0.5625);
+      const geometry = new THREE.PlaneGeometry(1.6, 0.9); // Tùy tỉ lệ video
       const material = new THREE.MeshBasicMaterial({ map: texture });
       const plane = new THREE.Mesh(geometry, material);
 
       anchor.group.add(plane);
 
-      // Gọi play khi đã sẵn sàng
-      video.addEventListener("canplaythrough", () => {
-        console.log("✅ Video ready to play");
-      });
-
-      // Dự phòng cho iOS yêu cầu tương tác
+      // Dự phòng chạm để bật âm thanh (iOS bắt buộc)
       document.body.addEventListener("touchstart", () => {
         video.play().then(() => {
-          console.log("▶️ Video played from touch");
-        }).catch(e => {
-          console.warn("⚠️ Play failed from touch:", e);
+          console.log("▶️ Video playing with sound");
+          const msg = document.getElementById("overlay-message");
+          if (msg) msg.remove(); // Ẩn thông báo sau khi play
+        }).catch((err) => {
+          console.warn("⚠️ iOS block play:", err);
         });
       }, { once: true });
 
       anchor.onTargetFound = () => {
-        video.play().then(() => {
-          console.log("▶️ Video playing on marker found");
-        }).catch(e => {
-          console.warn("⚠️ Video play blocked:", e);
-        });
+        console.log("📍 Marker detected");
+        // Không gọi play ở đây nếu chưa có chạm user
       };
 
       anchor.onTargetLost = () => {
         video.pause();
+        console.log("❌ Marker lost, paused video");
       };
 
       await mindarThree.start();
@@ -79,7 +91,6 @@
       });
     });
   </script>
-
 </body>
 
 </html>
