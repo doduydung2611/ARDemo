@@ -2,8 +2,8 @@
 <html>
 
 <head>
-  <title>AR Video with Sound – Play only on Marker + Interaction</title>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
+  <title>AR Video with Sound (iOS Compatible)</title>
+  <script src="="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image-three.prod.js"></script>
 
@@ -56,9 +56,8 @@
       video.loop = true;
       video.playsInline = true;
       video.autoplay = false;
-      video.muted = false;
+      video.muted = true;
 
-      // Hiển thị khung đầu
       video.load();
       video.play().then(() => {
         video.pause();
@@ -76,12 +75,17 @@
 
       const overlay = document.getElementById("overlay-message");
       let userInteracted = false;
-      let hasPlayed = false;
 
       const handleUserInteraction = () => {
         userInteracted = true;
-        console.log("✅ User interaction granted");
         overlay?.remove();
+
+        video.muted = true;
+        video.play().then(() => {
+          console.log("▶️ Started silent playback (unlocks audio for iOS)");
+        }).catch(e => {
+          console.warn("⚠️ Silent play failed:", e);
+        });
 
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
@@ -91,14 +95,17 @@
       document.body.addEventListener("touchstart", handleUserInteraction);
 
       anchor.onTargetFound = () => {
-        console.log("📍 Marker found");
         if (userInteracted) {
-          video.play().then(() => {
-            console.log("▶️ Video playing with sound");
-            hasPlayed = true;
-          }).catch((e) => {
-            console.warn("⚠️ Play failed on marker + interaction:", e);
-          });
+          video.muted = false;
+          if (video.paused) {
+            video.play().then(() => {
+              console.log("🔊 Video playing with sound after marker");
+            }).catch(e => {
+              console.warn("⚠️ Resume failed:", e);
+            });
+          }
+        } else {
+          console.log("📍 Marker found – waiting for interaction");
         }
       };
 
