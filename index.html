@@ -19,7 +19,8 @@
       position: relative;
     }
 
-    #overlay-message {
+    #overlay-click,
+    #overlay-hint {
       position: absolute;
       top: 20px;
       left: 50%;
@@ -31,13 +32,15 @@
       font-size: 1.3rem;
       z-index: 999;
       text-align: center;
+      display: none;
     }
   </style>
 </head>
 
 <body>
   <div id="ar-container">
-    <div id="overlay-message">🔊 Click hoặc chạm để bắt đầu video</div>
+    <div id="overlay-hint">📷 Vui lòng hướng camera vào ảnh lịch sử</div>
+    <div id="overlay-click">🔊 Click hoặc chạm để bắt đầu video</div>
   </div>
 
   <script>
@@ -51,7 +54,11 @@
       const anchor1 = mindarThree.addAnchor(0);
       const anchor2 = mindarThree.addAnchor(1);
 
-      const overlay = document.getElementById("overlay-message");
+      const overlayHint = document.getElementById("overlay-hint");
+      const overlayClick = document.getElementById("overlay-click");
+
+      // overlayHint.style.display = "block"; (bỏ tự hiển thị lúc load) // Hiện ngay khi load trang
+
       let userInteracted = false;
       let anchor1Visible = false;
       let anchor2Visible = false;
@@ -86,11 +93,16 @@
 
       const handleUserInteraction = () => {
         userInteracted = true;
-        overlay?.remove();
+
+        // Ẩn các overlay ngay lập tức
+        overlayClick.style.display = "none";
+
+
         vid1.video.muted = false;
         vid2.video.muted = false;
         if (anchor1Visible) vid1.video.play();
         if (anchor2Visible) vid2.video.play();
+
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
       };
@@ -101,10 +113,22 @@
       anchor1.onTargetFound = () => {
         anchor1Visible = true;
         vid1.video.currentTime = videoPositions.vid1 || 0;
-        if (userInteracted) vid1.video.play();
+
+        if (!userInteracted) {
+          overlayHint.style.display = "none";
+          overlayClick.style.display = "block";
+        }
+
+        if (userInteracted) {
+          vid1.video.play();
+          overlayHint.style.display = "none";
+        }
       };
+
       anchor1.onTargetLost = () => {
         anchor1Visible = false;
+        overlayClick.style.display = "none";
+        overlayHint.style.display = "block";
         videoPositions.vid1 = vid1.video.currentTime;
         sessionStorage.setItem("vid1", videoPositions.vid1);
         vid1.video.pause();
@@ -113,16 +137,26 @@
       anchor2.onTargetFound = () => {
         anchor2Visible = true;
         vid2.video.currentTime = videoPositions.vid2 || 0;
-        if (userInteracted) vid2.video.play();
+
+        if (!userInteracted) {
+          overlayHint.style.display = "none";
+          overlayClick.style.display = "block";
+        }
+
+        if (userInteracted) {
+          vid2.video.play();
+          overlayHint.style.display = "none";
+        }
       };
       anchor2.onTargetLost = () => {
         anchor2Visible = false;
+        overlayClick.style.display = "none";
+        overlayHint.style.display = "block";
         videoPositions.vid2 = vid2.video.currentTime;
         sessionStorage.setItem("vid2", videoPositions.vid2);
         vid2.video.pause();
       };
 
-      // 🔧 Hàm resize + fix xoay ngang bị lệch
       const adjustRendererSize = () => {
         const container = document.querySelector("#ar-container");
         const width = container.clientWidth;
@@ -131,7 +165,6 @@
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
 
-        // Reset xoay lệch nếu có
         vid1.mesh.rotation.set(0, 0, 0);
         vid2.mesh.rotation.set(0, 0, 0);
         vid1.mesh.scale.set(1, 1, 1);
@@ -139,8 +172,13 @@
       };
 
       window.addEventListener("resize", adjustRendererSize);
-
       await mindarThree.start();
+      // Nếu không thấy marker nào sau 1.5s thì hiển thị gợi ý
+      setTimeout(() => {
+        if (!anchor1Visible && !anchor2Visible && !userInteracted) {
+          overlayHint.style.display = "block";
+        }
+      }, 1500);
       adjustRendererSize();
 
       renderer.setAnimationLoop(() => {
