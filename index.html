@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>AR Video with Sound (Universal)</title>
+  <title>AR Video with Sound & First Frame Preview</title>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image-three.prod.js"></script>
@@ -44,36 +44,44 @@
     document.addEventListener("DOMContentLoaded", async () => {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
         container: document.querySelector("#ar-container"),
-        imageTargetSrc: "marker.mind", // Replace with your marker
+        imageTargetSrc: "marker.mind"
       });
 
       const { renderer, scene, camera } = mindarThree;
       const anchor = mindarThree.addAnchor(0);
 
       const video = document.createElement("video");
-      video.src = "Vid1.mp4"; // Replace with your video
+      video.src = "Vid1.mp4";
       video.crossOrigin = "anonymous";
       video.loop = true;
       video.playsInline = true;
       video.autoplay = false;
       video.muted = false;
 
+      // Hiển thị khung hình đầu tiên
+      video.load();
+      video.play().then(() => {
+        video.pause();
+        video.currentTime = 0;
+        console.log("✅ Preloaded first frame");
+      }).catch(e => {
+        console.warn("⚠️ Preload failed:", e);
+      });
+
       const texture = new THREE.VideoTexture(video);
       const geometry = new THREE.PlaneGeometry(1.6, 0.9);
       const material = new THREE.MeshBasicMaterial({ map: texture });
       const plane = new THREE.Mesh(geometry, material);
-
       anchor.group.add(plane);
 
       const overlay = document.getElementById("overlay-message");
 
-      // Phát video sau click/touch đầu tiên — đảm bảo tương thích âm thanh
       const handleUserInteraction = () => {
         video.play().then(() => {
           console.log("▶️ Video playing with sound");
           overlay?.remove();
-        }).catch((e) => {
-          console.warn("⚠️ Video play blocked:", e);
+        }).catch(e => {
+          console.warn("⚠️ Play blocked:", e);
         });
 
         document.body.removeEventListener("click", handleUserInteraction);
@@ -84,7 +92,7 @@
       document.body.addEventListener("touchstart", handleUserInteraction);
 
       anchor.onTargetFound = () => {
-        console.log("📍 Marker found – video already playing");
+        console.log("📍 Marker found – video texture active");
       };
 
       anchor.onTargetLost = () => {
