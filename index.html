@@ -3,6 +3,7 @@
 
 <head>
   <title>AR Video - Safe Sound Unlock (Only on Click)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image-three.prod.js"></script>
@@ -29,14 +30,16 @@
       border-radius: 8px;
       font-size: 2.5rem;
       z-index: 999;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
   <div id="ar-container">
-    <div id="overlay-message">🔊 Click hoặc chạm để bật âm thanh</div>
+    <div id="overlay-message">🔊 Click hoặc chạm để bắt đầu xem video</div>
   </div>
+
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
@@ -119,7 +122,20 @@
         vid2.video.pause();
       };
 
+      const adjustRendererSize = () => {
+        const container = document.querySelector("#ar-container");
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      };
+
+      window.addEventListener("resize", adjustRendererSize);
+
       await mindarThree.start();
+      adjustRendererSize();
+
       renderer.setAnimationLoop(() => {
         renderer.render(scene, camera);
       });
