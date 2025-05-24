@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>AR Video with Sound & Resume</title>
+  <title>AR Video with Sound – Play only on Marker + Interaction</title>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image-three.prod.js"></script>
@@ -76,15 +76,12 @@
 
       const overlay = document.getElementById("overlay-message");
       let userInteracted = false;
+      let hasPlayed = false;
 
       const handleUserInteraction = () => {
         userInteracted = true;
-        video.play().then(() => {
-          console.log("▶️ Initial play with sound");
-          overlay?.remove();
-        }).catch(e => {
-          console.warn("⚠️ Initial play failed:", e);
-        });
+        console.log("✅ User interaction granted");
+        overlay?.remove();
 
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
@@ -94,20 +91,22 @@
       document.body.addEventListener("touchstart", handleUserInteraction);
 
       anchor.onTargetFound = () => {
+        console.log("📍 Marker found");
         if (userInteracted) {
           video.play().then(() => {
-            console.log("▶️ Marker re-detected – resumed playback");
+            console.log("▶️ Video playing with sound");
+            hasPlayed = true;
           }).catch((e) => {
-            console.warn("⚠️ Resume play() failed:", e);
+            console.warn("⚠️ Play failed on marker + interaction:", e);
           });
-        } else {
-          console.log("📍 Marker found – waiting for user interaction");
         }
       };
 
       anchor.onTargetLost = () => {
-        video.pause();
-        console.log("⏸️ Marker lost – video paused");
+        if (!video.paused) {
+          video.pause();
+          console.log("⏸️ Video paused on marker lost");
+        }
       };
 
       await mindarThree.start();
