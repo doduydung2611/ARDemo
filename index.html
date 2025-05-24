@@ -11,7 +11,7 @@
     #overlay-message {
       position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
       background: rgba(0, 0, 0, 0.7); color: white;
-      padding: 10px 20px; border-radius: 8px; font-size: 16px;
+      padding: 10px 20px; border-radius: 8px; font-size: 1.5rem;
       z-index: 999;
     }
   </style>
@@ -41,7 +41,10 @@
       };
 
       const createVideo = (src, geometry) => {
+      const wrapper = document.createElement("div");
+      wrapper.style.display = "none";
         const video = document.createElement("video");
+      wrapper.appendChild(video);
         video.src = src;
         video.crossOrigin = "anonymous";
         video.loop = true;
@@ -49,14 +52,11 @@
         video.autoplay = false;
         video.muted = true;
         video.controls = false;
-        video.setAttribute("playsinline", "");
-        video.setAttribute("webkit-playsinline", "");
-        video.style.pointerEvents = "none";
-        video.style.display = "block";
         const texture = new THREE.VideoTexture(video);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         const mesh = new THREE.Mesh(geometry, material);
-        return { video, mesh };
+        document.body.appendChild(wrapper);
+      return { video, mesh };
       };
 
       const scale1 = 0.58;
