@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>AR Video with Sound & First Frame Preview</title>
+  <title>AR Video with Sound & Resume</title>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.0/dist/mindar-image-three.prod.js"></script>
@@ -58,7 +58,7 @@
       video.autoplay = false;
       video.muted = false;
 
-      // Hiển thị khung hình đầu tiên
+      // Hiển thị khung đầu
       video.load();
       video.play().then(() => {
         video.pause();
@@ -75,13 +75,15 @@
       anchor.group.add(plane);
 
       const overlay = document.getElementById("overlay-message");
+      let userInteracted = false;
 
       const handleUserInteraction = () => {
+        userInteracted = true;
         video.play().then(() => {
-          console.log("▶️ Video playing with sound");
+          console.log("▶️ Initial play with sound");
           overlay?.remove();
         }).catch(e => {
-          console.warn("⚠️ Play blocked:", e);
+          console.warn("⚠️ Initial play failed:", e);
         });
 
         document.body.removeEventListener("click", handleUserInteraction);
@@ -92,7 +94,15 @@
       document.body.addEventListener("touchstart", handleUserInteraction);
 
       anchor.onTargetFound = () => {
-        console.log("📍 Marker found – video texture active");
+        if (userInteracted) {
+          video.play().then(() => {
+            console.log("▶️ Marker re-detected – resumed playback");
+          }).catch((e) => {
+            console.warn("⚠️ Resume play() failed:", e);
+          });
+        } else {
+          console.log("📍 Marker found – waiting for user interaction");
+        }
       };
 
       anchor.onTargetLost = () => {
