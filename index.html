@@ -47,8 +47,31 @@
 
       anchor.group.add(plane);
 
-      anchor.onTargetFound = () => { video.play(); };
-      anchor.onTargetLost = () => { video.pause(); };
+      // Gọi play khi đã sẵn sàng
+      video.addEventListener("canplaythrough", () => {
+        console.log("✅ Video ready to play");
+      });
+
+      // Dự phòng cho iOS yêu cầu tương tác
+      document.body.addEventListener("touchstart", () => {
+        video.play().then(() => {
+          console.log("▶️ Video played from touch");
+        }).catch(e => {
+          console.warn("⚠️ Play failed from touch:", e);
+        });
+      }, { once: true });
+
+      anchor.onTargetFound = () => {
+        video.play().then(() => {
+          console.log("▶️ Video playing on marker found");
+        }).catch(e => {
+          console.warn("⚠️ Video play blocked:", e);
+        });
+      };
+
+      anchor.onTargetLost = () => {
+        video.pause();
+      };
 
       await mindarThree.start();
       renderer.setAnimationLoop(() => {
@@ -56,6 +79,7 @@
       });
     });
   </script>
+
 </body>
 
 </html>
