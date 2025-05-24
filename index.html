@@ -44,7 +44,7 @@
     document.addEventListener("DOMContentLoaded", async () => {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
         container: document.querySelector("#ar-container"),
-        imageTargetSrc: "marker.mind"
+        imageTargetSrc: "marker1.mind"
       });
 
       const { renderer, scene, camera } = mindarThree;
@@ -67,8 +67,9 @@
         console.warn("⚠️ Preload failed:", e);
       });
 
+      const scale = 0.58;
       const texture = new THREE.VideoTexture(video);
-      const geometry = new THREE.PlaneGeometry(1.9048, 1);
+      const geometry = new THREE.PlaneGeometry(1.778 * scale, 1 * scale);
       const material = new THREE.MeshBasicMaterial({ map: texture });
       const plane = new THREE.Mesh(geometry, material);
       anchor.group.add(plane);
