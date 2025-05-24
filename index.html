@@ -67,8 +67,9 @@
         console.warn("⚠️ Preload failed:", e);
       });
 
+      const scale = 0.58;
       const texture = new THREE.VideoTexture(video);
-      const geometry = new THREE.PlaneGeometry(1.778, 1); // 16:9 video aspect ratio
+      const geometry = new THREE.PlaneGeometry(1.778 * scale, 1 * scale); // 16:9 video aspect ratio
       const material = new THREE.MeshBasicMaterial({ map: texture });
       const plane = new THREE.Mesh(geometry, material);
       anchor.group.add(plane);
