@@ -74,14 +74,36 @@
         video.controls = false;
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
-        video.load();
 
-        // Không thêm video vào DOM để tránh iOS hiển thị control
-        console.log("Video added to DOM:", document.body.contains(video));
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 360;
+        const ctx = canvas.getContext("2d");
 
-        const texture = new THREE.VideoTexture(video);
+        const texture = new THREE.CanvasTexture(canvas);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         const mesh = new THREE.Mesh(geometry, material);
+
+        video.addEventListener("loadeddata", () => {
+          // Force seek to 0 and pause to stabilize video frame
+          video.currentTime = 0;
+          video.pause();
+          video.muted = true;
+          setTimeout(() => {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            texture.needsUpdate = true;
+          }, 100);
+        });
+
+        const updateFrame = () => {
+          if (!video.paused && !video.ended) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            texture.needsUpdate = true;
+          }
+          requestAnimationFrame(updateFrame);
+        };
+        updateFrame();
+
         return { video, mesh };
       };
 
