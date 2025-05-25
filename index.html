@@ -83,7 +83,7 @@
         const mesh = new THREE.Mesh(geometry, material);
 
         const updateFrame = () => {
-          if (!video.paused && !video.ended) {
+          if (!video.paused && !video.ended && video.readyState >= 2) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             texture.needsUpdate = true;
           }
@@ -102,21 +102,45 @@
       anchor1.group.add(vid1.mesh);
       anchor2.group.add(vid2.mesh);
 
-      const handleUserInteraction = async () => {
+      const unlockAndPlay = async (vid, isVisible) => {
+        try {
+          vid.video.load();
+          await vid.video.play();
+          vid.video.pause();
+          vid.video.currentTime = 0.01;
+
+          const waitUntilReady = () => new Promise(resolve => {
+            const check = () => {
+              if (vid.video.readyState >= 2) {
+                resolve();
+              } else {
+                requestAnimationFrame(check);
+              }
+            };
+            check();
+          });
+
+          await waitUntilReady();
+
+          vid.ctx.drawImage(vid.video, 0, 0, vid.canvas.width, vid.canvas.height);
+          vid.texture.needsUpdate = true;
+
+          if (isVisible) {
+            vid.video.play();
+          }
+        } catch (e) {
+          console.warn("Video unlock failed", e);
+        }
+      };
+
+      const handleUserInteraction = () => {
         userInteracted = true;
         overlayClick.style.display = "none";
         vid1.video.muted = false;
         vid2.video.muted = false;
 
-        try {
-          await vid1.video.play();
-          if (anchor1Visible) vid1.video.play();
-        } catch (e) { console.warn("vid1 play error", e); }
-
-        try {
-          await vid2.video.play();
-          if (anchor2Visible) vid2.video.play();
-        } catch (e) { console.warn("vid2 play error", e); }
+        unlockAndPlay(vid1, anchor1Visible);
+        unlockAndPlay(vid2, anchor2Visible);
 
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
