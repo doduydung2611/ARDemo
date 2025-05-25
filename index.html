@@ -77,14 +77,13 @@
         video.muted = true;
         video.controls = false;
         video.load(); // Ensure preload on Safari
-        // video.style.display intentionally left visible for rendering
+        // Ẩn hoàn toàn video khỏi giao diện để tránh nút play/pause iOS
+        video.style.display = "none";
         video.style.pointerEvents = "none";
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
-        video.style.pointerEvents = "none";
-        video.style.display = "block";
         video.load();
 
         const texture = new THREE.VideoTexture(video);
