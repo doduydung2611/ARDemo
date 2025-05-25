@@ -84,15 +84,6 @@
         const material = new THREE.MeshBasicMaterial({ map: texture });
         const mesh = new THREE.Mesh(geometry, material);
 
-        video.addEventListener("canplay", () => {
-          video.currentTime = 0;
-          video.pause();
-          setTimeout(() => {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            texture.needsUpdate = true;
-          }, 50);
-        });
-
         const updateFrame = () => {
           if (!video.paused && !video.ended) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -102,7 +93,7 @@
         };
         updateFrame();
 
-        return { video, mesh };
+        return { video, mesh, canvas, ctx, texture };
       };
 
       const scale1 = 0.58;
@@ -113,15 +104,37 @@
       anchor1.group.add(vid1.mesh);
       anchor2.group.add(vid2.mesh);
 
+      const unlockAndDraw = async (vid) => {
+        try {
+          await vid.video.play();
+          vid.video.pause();
+          vid.video.currentTime = 0;
+
+          const waitUntilSeeked = () => new Promise((resolve) => {
+            const handler = () => {
+              vid.video.removeEventListener("seeked", handler);
+              resolve();
+            };
+            vid.video.addEventListener("seeked", handler);
+          });
+
+          await waitUntilSeeked();
+
+          vid.ctx.drawImage(vid.video, 0, 0, vid.canvas.width, vid.canvas.height);
+          vid.texture.needsUpdate = true;
+        } catch (e) {
+          console.warn("Unlock video failed", e);
+        }
+      };
+
       const handleUserInteraction = () => {
         userInteracted = true;
         overlayClick.style.display = "none";
         vid1.video.muted = false;
         vid2.video.muted = false;
 
-        // Force play and pause to unlock video decoding on iOS
-        vid1.video.play().then(() => vid1.video.pause());
-        vid2.video.play().then(() => vid2.video.pause());
+        unlockAndDraw(vid1);
+        unlockAndDraw(vid2);
 
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
