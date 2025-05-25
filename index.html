@@ -77,15 +77,14 @@
         video.muted = true;
         video.controls = false;
         video.load(); // Ensure preload on Safari
-        // Ẩn hoàn toàn video khỏi giao diện để tránh nút play/pause iOS
-        video.style.display = "none";
-        video.style.visibility = "hidden";
-        video.style.width = "0px";
-        video.style.height = "0px";
-        video.style.position = "absolute";
-        video.style.left = "-9999px";
+        // video.style.display intentionally left visible for rendering
+        video.style.pointerEvents = "none";
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
+        video.setAttribute("playsinline", "");
+        video.setAttribute("webkit-playsinline", "");
+        video.style.pointerEvents = "none";
+        video.style.display = "block";
         video.load();
 
         const texture = new THREE.VideoTexture(video);
@@ -194,6 +193,8 @@
       adjustRendererSize();
 
       renderer.setAnimationLoop(() => {
+        if (!vid1.video.paused) vid1.mesh.material.map.needsUpdate = true;
+        if (!vid2.video.paused) vid2.mesh.material.map.needsUpdate = true;
         renderer.render(scene, camera);
       });
     });
