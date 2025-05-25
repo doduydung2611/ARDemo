@@ -84,15 +84,13 @@
         const material = new THREE.MeshBasicMaterial({ map: texture });
         const mesh = new THREE.Mesh(geometry, material);
 
-        video.addEventListener("loadeddata", () => {
-          // Force seek to 0 and pause to stabilize video frame
+        video.addEventListener("canplay", () => {
           video.currentTime = 0;
           video.pause();
-          video.muted = true;
           setTimeout(() => {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             texture.needsUpdate = true;
-          }, 100);
+          }, 50);
         });
 
         const updateFrame = () => {
@@ -120,8 +118,11 @@
         overlayClick.style.display = "none";
         vid1.video.muted = false;
         vid2.video.muted = false;
-        if (anchor1Visible) vid1.video.play();
-        if (anchor2Visible) vid2.video.play();
+
+        // Force play and pause to unlock video decoding on iOS
+        vid1.video.play().then(() => vid1.video.pause());
+        vid2.video.play().then(() => vid2.video.pause());
+
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
       };
