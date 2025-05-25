@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <title>Việt Sử Ký</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -12,13 +11,11 @@
       margin: 0;
       overflow: hidden;
     }
-
     #ar-container {
       width: 100vw;
       height: 100vh;
       position: relative;
     }
-
     #overlay-click,
     #overlay-hint {
       position: absolute;
@@ -36,7 +33,6 @@
     }
   </style>
 </head>
-
 <body>
   <div id="ar-container">
     <div id="overlay-hint">📷 Vui lòng hướng camera vào ảnh lịch sử</div>
@@ -57,8 +53,6 @@
       const overlayHint = document.getElementById("overlay-hint");
       const overlayClick = document.getElementById("overlay-click");
 
-      // overlayHint.style.display = "block"; (bỏ tự hiển thị lúc load) // Hiện ngay khi load trang
-
       let userInteracted = false;
       let anchor1Visible = false;
       let anchor2Visible = false;
@@ -76,7 +70,6 @@
         video.autoplay = false;
         video.muted = true;
         video.controls = false;
-        video.load(); // Ensure preload on Safari
         // video.style.display intentionally left visible for rendering
         video.style.pointerEvents = "none";
         video.setAttribute("playsinline", "");
@@ -103,16 +96,11 @@
 
       const handleUserInteraction = () => {
         userInteracted = true;
-
-        // Ẩn các overlay ngay lập tức
         overlayClick.style.display = "none";
-
-
         vid1.video.muted = false;
         vid2.video.muted = false;
         if (anchor1Visible) vid1.video.play();
         if (anchor2Visible) vid2.video.play();
-
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
       };
@@ -123,12 +111,10 @@
       anchor1.onTargetFound = () => {
         anchor1Visible = true;
         vid1.video.currentTime = videoPositions.vid1 || 0;
-
         if (!userInteracted) {
           overlayHint.style.display = "none";
           overlayClick.style.display = "block";
         }
-
         if (userInteracted) {
           vid1.video.play();
           overlayHint.style.display = "none";
@@ -147,12 +133,10 @@
       anchor2.onTargetFound = () => {
         anchor2Visible = true;
         vid2.video.currentTime = videoPositions.vid2 || 0;
-
         if (!userInteracted) {
           overlayHint.style.display = "none";
           overlayClick.style.display = "block";
         }
-
         if (userInteracted) {
           vid2.video.play();
           overlayHint.style.display = "none";
@@ -184,7 +168,6 @@
 
       window.addEventListener("resize", adjustRendererSize);
       await mindarThree.start();
-      // Nếu không thấy marker nào sau 1.5s thì hiển thị gợi ý
       setTimeout(() => {
         if (!anchor1Visible && !anchor2Visible && !userInteracted) {
           overlayHint.style.display = "block";
@@ -193,16 +176,9 @@
       adjustRendererSize();
 
       renderer.setAnimationLoop(() => {
-        if (vid1.mesh?.material?.map && !vid1.video.paused) {
-          vid1.mesh.material.map.needsUpdate = true;
-        }
-        if (vid2.mesh?.material?.map && !vid2.video.paused) {
-          vid2.mesh.material.map.needsUpdate = true;
-        }
         renderer.render(scene, camera);
       });
     });
   </script>
 </body>
-
 </html>
