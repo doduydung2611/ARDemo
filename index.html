@@ -79,9 +79,11 @@
         video.load(); // Ensure preload on Safari
         // Ẩn hoàn toàn video khỏi giao diện để tránh nút play/pause iOS
         video.style.display = "none";
-        video.style.pointerEvents = "none";
-        video.setAttribute("playsinline", "");
-        video.setAttribute("webkit-playsinline", "");
+        video.style.visibility = "hidden";
+        video.style.width = "0px";
+        video.style.height = "0px";
+        video.style.position = "absolute";
+        video.style.left = "-9999px";
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
         video.load();
