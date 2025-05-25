@@ -11,11 +11,13 @@
       margin: 0;
       overflow: hidden;
     }
+
     #ar-container {
       width: 100vw;
       height: 100vh;
       position: relative;
     }
+
     #overlay-click,
     #overlay-hint {
       position: absolute;
@@ -70,14 +72,15 @@
         video.autoplay = false;
         video.muted = true;
         video.controls = false;
-        // video.style.display intentionally left visible for rendering
-        video.style.pointerEvents = "none";
+
+        // Ẩn khỏi mọi layout của DOM để không hiển thị nút play/pause trên iOS
+        video.style.position = "absolute";
+        video.style.left = "-9999px";
+        video.style.width = "1px";
+        video.style.height = "1px";
+        video.style.opacity = "0";
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
-        video.setAttribute("playsinline", "");
-        video.setAttribute("webkit-playsinline", "");
-        video.style.pointerEvents = "none";
-        video.style.display = "block";
         video.load();
 
         const texture = new THREE.VideoTexture(video);
