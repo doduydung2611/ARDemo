@@ -193,13 +193,16 @@
       adjustRendererSize();
 
       renderer.setAnimationLoop(() => {
-        if (!vid1.video.paused) vid1.mesh.material.map.needsUpdate = true;
-        if (!vid2.video.paused) vid2.mesh.material.map.needsUpdate = true;
+        if (vid1.mesh?.material?.map && !vid1.video.paused) {
+          vid1.mesh.material.map.needsUpdate = true;
+        }
+        if (vid2.mesh?.material?.map && !vid2.video.paused) {
+          vid2.mesh.material.map.needsUpdate = true;
+        }
         renderer.render(scene, camera);
       });
     });
   </script>
 </body>
 
-</html>
 </html>
