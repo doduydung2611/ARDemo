@@ -33,6 +33,15 @@
       text-align: center;
       display: none;
     }
+
+    video.ar-hidden-video {
+      position: absolute !important;
+      left: -9999px !important;
+      width: 1px !important;
+      height: 1px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 <body>
@@ -72,13 +81,7 @@
         video.autoplay = false;
         video.muted = true;
         video.controls = false;
-
-        // Ẩn khỏi mọi layout của DOM để không hiển thị nút play/pause trên iOS
-        video.style.position = "absolute";
-        video.style.left = "-9999px";
-        video.style.width = "1px";
-        video.style.height = "1px";
-        video.style.opacity = "0";
+        video.className = "ar-hidden-video";
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
         video.load();
