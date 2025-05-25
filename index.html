@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>AR Video - Safe Sound Unlock (Only on Click)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -11,11 +12,13 @@
       margin: 0;
       overflow: hidden;
     }
+
     #ar-container {
       width: 100vw;
       height: 100vh;
       position: relative;
     }
+
     #overlay-click,
     #overlay-hint {
       position: absolute;
@@ -33,6 +36,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="ar-container">
     <div id="overlay-hint">📷 Vui lòng hướng camera vào ảnh lịch sử</div>
@@ -53,6 +57,8 @@
       const overlayHint = document.getElementById("overlay-hint");
       const overlayClick = document.getElementById("overlay-click");
 
+      // overlayHint.style.display = "block"; (bỏ tự hiển thị lúc load) // Hiện ngay khi load trang
+
       let userInteracted = false;
       let anchor1Visible = false;
       let anchor2Visible = false;
@@ -70,28 +76,21 @@
         video.autoplay = false;
         video.muted = true;
         video.controls = false;
+        video.load(); // Ensure preload on Safari
+        // video.style.display intentionally left visible for rendering
+        video.style.pointerEvents = "none";
         video.setAttribute("playsinline", "");
         video.setAttribute("webkit-playsinline", "");
+        video.setAttribute("playsinline", "");
+        video.setAttribute("webkit-playsinline", "");
+        video.style.pointerEvents = "none";
+        video.style.display = "block";
+        video.load();
 
-        const canvas = document.createElement("canvas");
-        canvas.width = 640;
-        canvas.height = 360;
-        const ctx = canvas.getContext("2d");
-
-        const texture = new THREE.CanvasTexture(canvas);
+        const texture = new THREE.VideoTexture(video);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         const mesh = new THREE.Mesh(geometry, material);
-
-        const updateFrame = () => {
-          if (!video.paused && !video.ended && video.readyState >= 2) {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            texture.needsUpdate = true;
-          }
-          requestAnimationFrame(updateFrame);
-        };
-        updateFrame();
-
-        return { video, mesh, canvas, ctx, texture };
+        return { video, mesh };
       };
 
       const scale1 = 0.58;
@@ -102,34 +101,17 @@
       anchor1.group.add(vid1.mesh);
       anchor2.group.add(vid2.mesh);
 
-      const unlockAndPlay = async (vid, isVisible) => {
-        try {
-          vid.video.load();
-          vid.video.muted = true;
-
-          await vid.video.play();
-          await new Promise(resolve => setTimeout(resolve, 150));
-
-          vid.video.pause();
-          vid.ctx.drawImage(vid.video, 0, 0, vid.canvas.width, vid.canvas.height);
-          vid.texture.needsUpdate = true;
-
-          if (isVisible) {
-            await vid.video.play();
-          }
-        } catch (e) {
-          console.warn("Video unlock failed", e);
-        }
-      };
-
       const handleUserInteraction = () => {
         userInteracted = true;
+
+        // Ẩn các overlay ngay lập tức
         overlayClick.style.display = "none";
+
+
         vid1.video.muted = false;
         vid2.video.muted = false;
-
-        unlockAndPlay(vid1, anchor1Visible);
-        unlockAndPlay(vid2, anchor2Visible);
+        if (anchor1Visible) vid1.video.play();
+        if (anchor2Visible) vid2.video.play();
 
         document.body.removeEventListener("click", handleUserInteraction);
         document.body.removeEventListener("touchstart", handleUserInteraction);
@@ -141,10 +123,13 @@
       anchor1.onTargetFound = () => {
         anchor1Visible = true;
         vid1.video.currentTime = videoPositions.vid1 || 0;
+
         if (!userInteracted) {
           overlayHint.style.display = "none";
           overlayClick.style.display = "block";
-        } else {
+        }
+
+        if (userInteracted) {
           vid1.video.play();
           overlayHint.style.display = "none";
         }
@@ -162,10 +147,13 @@
       anchor2.onTargetFound = () => {
         anchor2Visible = true;
         vid2.video.currentTime = videoPositions.vid2 || 0;
+
         if (!userInteracted) {
           overlayHint.style.display = "none";
           overlayClick.style.display = "block";
-        } else {
+        }
+
+        if (userInteracted) {
           vid2.video.play();
           overlayHint.style.display = "none";
         }
@@ -196,6 +184,7 @@
 
       window.addEventListener("resize", adjustRendererSize);
       await mindarThree.start();
+      // Nếu không thấy marker nào sau 1.5s thì hiển thị gợi ý
       setTimeout(() => {
         if (!anchor1Visible && !anchor2Visible && !userInteracted) {
           overlayHint.style.display = "block";
@@ -209,4 +198,6 @@
     });
   </script>
 </body>
+
+</html>
 </html>
